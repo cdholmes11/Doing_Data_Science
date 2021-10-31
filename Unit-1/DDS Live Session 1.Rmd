@@ -19,7 +19,7 @@ df = 2
 chi_sqr_dist = rchisq(population, df)
 chi_sqr_dist
 
-hist(chi_sqr_dist, col = c("#ff6666"), xlab = NULL, main = paste("Chi-Square Distribution: df = " df))
+hist(chi_sqr_dist, col = c("#ff6666"), xlab = NULL, main = paste("Chi-Square Distribution: df = ", df))
 mean(chi_sqr_dist)
 sd(chi_sqr_dist)
 ```
@@ -50,4 +50,49 @@ mean(xbar_holder1)
 sd(xbar_holder1)
 ```
 
+
+
+# Beach Comber T-Test
+
+## Parameters
+```{r}
+ages = c(25,19,37,29,40,28,31)
+n = length(ages)
+alpha = .05
+```
+
+## Step 1 - Claim: mean age of the distribution of Comber patrons is <> 21
+##  Ho: mu = 21
+##  Ha: mu <> 21
+```{r}
+ho = 21
+```
+
+## Step 2
+```{r}
+critval = qt(alpha, n-1, lower.tail = FALSE)
+critval
+```
+
+## Step 3 - Critical Value
+```{r}
+ttest = t.test(ages, mu = ho, alt = "two.sided", conf= 1 - alpha)
+tstat = ttest$statistic
+tstat
+```
+
+## Step 4 - p-value
+```{r}
+pval = ttest$p.value
+pval
+```
+
+## Step 5 - Reject or fail to reject Ho
+```{r}
+ttest
+```
+
+## Step 6
+## There is enough evidence to suggest the true mean of the distribution of 
+## Comber patrons is not equal to 21 (p-value = 0.01622)
 
