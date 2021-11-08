@@ -70,8 +70,9 @@ ho = 21
 
 ## Step 2
 ```{r}
-critval = qt(alpha, n-1, lower.tail = FALSE)
+critval = qt(alpha/2 , n - 1, lower.tail = FALSE)
 critval
+
 ```
 
 ## Step 3 - Critical Value
