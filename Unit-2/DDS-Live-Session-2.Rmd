@@ -1,0 +1,14 @@
+---
+title: "DDS Live Session 2"
+author: "CDHolmes"
+date: "11/7/2021"
+output: html_document
+---
+
+```{r}
+# Data Import from csv
+
+Bball_Players = read.csv("C:/Users/corey/OneDrive/Documents/School/Classes/Doing Data Science/MSDS_6306_Doing-Data-Science/Unit 2/PlayersBBall.csv",header = TRUE) # headers are included in data
+Bball_Players
+
+```
