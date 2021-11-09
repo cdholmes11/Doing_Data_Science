@@ -112,7 +112,7 @@ ggplotly(m_height)
 # Create a 3D plot of height vs. weight vs. year and color code the points by 
 # position.
 ```{r}
-d = plot_ly(bball_new, x = ~year_start, y = ~weight, z = ~inches) %>%
+d = plot_ly(bball_new, x = ~year_start, y = ~weight, z = ~inches, color = ~position) %>%
   add_markers() %>%
   layout(scene = list(xaxis = list(title = 'Start Year'),
                       yaxis = list(title = 'Weight'),
