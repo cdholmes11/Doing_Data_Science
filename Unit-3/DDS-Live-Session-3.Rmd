@@ -1,0 +1,116 @@
+# Packages
+```{r}
+library(ggplot2)
+library(magrittr)
+library(dplyr)
+library(tidyverse)
+library(GGally)
+library(nycflights13)
+library(naniar)
+library(plotly)
+```
+
+# Part 1
+
+```{r}
+# Import Data
+fifa <- read.csv("C:\Users\corey\OneDrive\Documents\GitHub\MSDS_6306_Doing-Data-Science\Unit 3\FIFA Players.csv", header = TRUE)
+```
+
+## Question 1
+## Using the FIFA player data set, filter the data set to create a Dataframe
+## that has just the Left Midfilders (LM) and Left Forwards (LF)
+```{r}
+fifa_left <- fifa %>% filter(Position == "LM" | Position == "LF")
+```
+
+## Question 2
+## Use Ggally and ggpairs() and the dataset you created above, to plot the 
+## categorical variable Position (LM and LF), versus the continuous variables 
+## Acceleration and Agility.
+```{r}
+fifa_left %>%
+    select(Acceleration, Agility, Position) %>%
+    ggpairs(aes(color = Position))
+```
+
+## Question 3
+## Given the plot above, what relationships do you see?
+```{r}
+# Agility and Acceleration appear to have a positive linear coorelation.
+# LF appear to be more agile.
+```
+
+## Question 4
+## Test if the mean agaility rating of left midfielders (LM) is different than
+## that of the left forwards (LF). Perform a 6 step t-test to test the 
+## difference of these means.
+```{r}
+# Variables
+alpha = .05
+fifa_agil <- 
+    fifa_left %>% 
+    select(Position, Agility)
+
+## n values
+n <- fifa_agil %>%
+    select(Position) %>%
+    group_by(Position) %>%
+    summarize(count = n())
+n1 <- n %>% filter(Position == "LF") %>% select(count)
+n2 <- n %>% filter(Position == "LM") %>% select(count)
+# Step 1
+## ho: mu1 = mu2 # nolint
+## ha: mu1 <> mu2 # nolint
+
+# Step 2
+## Critical Value
+critval <- qt(alpha / 2, n1 + n2 - 2, lower.tail = FALSE)
+critval
+
+# Step 3
+## t-value
+ttest = t.test(Agility ~ Position, data = fifa_agil)
+tstat <- ttest$statistic
+tstat
+
+# Step 4
+## p-value
+pval <- ttest$p.val
+pval
+
+# Step 5
+# Reject/Fail to reject Ho
+## Fail to reject Ho
+ttest
+
+# Step 6
+## There is not enough evidence to suggest that the mean agility rating of
+## Left Midfilders is different from Left Forwards (p = 0.06314)
+```
+
+## Question 5
+## Are the assumptions of this test reasonably met?
+## Do you think the sampling distribution of sample means will be reasonably normal?
+## Does there look like there is significant visual evidence to suggest the standard deviations are different?
+```{r}
+# Histograms of each Position split up because the number of LM makes it 
+# difficult to see LF charts when put on the same axis
+fifa_agil %>%
+    filter(Position == "LF") %>%
+    ggplot(aes(x = Agility)) +
+    geom_histogram(fill = "blue")
+
+fifa_agil %>%
+    filter(Position == "LM") %>%
+    ggplot(aes(x = Agility)) +
+    geom_histogram(fill = "red")
+
+# Box Plots to evaluate spread
+box <-
+    fifa_agil %>%
+    ggplot(aes(x = Position, y = Agility, fill = Position)) +
+    geom_boxplot()
+ggplotly(box)
+```
+ 
