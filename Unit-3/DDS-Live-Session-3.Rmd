@@ -8,13 +8,14 @@ library(GGally)
 library(nycflights13)
 library(naniar)
 library(plotly)
+library(stringr)
 ```
 
 # Part 1
 
 ```{r}
 # Import Data
-fifa <- read.csv("C:\Users\corey\OneDrive\Documents\GitHub\MSDS_6306_Doing-Data-Science\Unit 3\FIFA Players.csv", header = TRUE)
+fifa <- read.csv("C:/Users/corey/OneDrive/Documents/GitHub/MSDS_6306_Doing-Data-Science/Unit 3/FIFA Players.csv", header = TRUE)
 ```
 
 ## Question 1
@@ -47,9 +48,9 @@ fifa_left %>%
 ## difference of these means.
 ```{r}
 # Variables
-alpha = .05
-fifa_agil <- 
-    fifa_left %>% 
+alpha <- .05
+fifa_agil <-
+    fifa_left %>%
     select(Position, Agility)
 
 ## n values
@@ -57,32 +58,49 @@ n <- fifa_agil %>%
     select(Position) %>%
     group_by(Position) %>%
     summarize(count = n())
-n1 <- n %>% filter(Position == "LF") %>% select(count)
-n2 <- n %>% filter(Position == "LM") %>% select(count)
+n1 <- n %>%
+    filter(Position == "LF") %>%
+    select(count)
+n2 <- n %>%
+    filter(Position == "LM") %>%
+    select(count)
+
 # Step 1
 ## ho: mu1 = mu2 # nolint
 ## ha: mu1 <> mu2 # nolint
 
 # Step 2
 ## Critical Value
-critval <- qt(alpha / 2, n1 + n2 - 2, lower.tail = FALSE)
+critval <- qt(alpha / 2, n1$count + n2$count - 2, lower.tail = FALSE)
 critval
 
 # Step 3
 ## t-value
-ttest = t.test(Agility ~ Position, data = fifa_agil)
+
+## Assuming unequal variance
+ttest <- t.test(Agility ~ Position, data = fifa_agil)
 tstat <- ttest$statistic
 tstat
+
+## Assuming equal variance
+ttest2 <- t.test(Agility ~ Position, data = fifa_agil, var.equal = TRUE)
+tstat2 <- ttest$statistic
+tstat2
+
 
 # Step 4
 ## p-value
 pval <- ttest$p.val
 pval
 
+pval2 <- ttest2$p.val
+pval2
+
 # Step 5
 # Reject/Fail to reject Ho
 ## Fail to reject Ho
 ttest
+ttest2
 
 # Step 6
 ## There is not enough evidence to suggest that the mean agility rating of
@@ -94,12 +112,12 @@ ttest
 ## Do you think the sampling distribution of sample means will be reasonably normal?
 ## Does there look like there is significant visual evidence to suggest the standard deviations are different?
 ```{r}
-# Histograms of each Position split up because the number of LM makes it 
+# Histograms of each Position split up because the number of LM makes it
 # difficult to see LF charts when put on the same axis
 fifa_agil %>%
     filter(Position == "LF") %>%
     ggplot(aes(x = Agility)) +
-    geom_histogram(fill = "blue")
+    geom_histogram(fill = "#6060d8")
 
 fifa_agil %>%
     filter(Position == "LM") %>%
@@ -114,3 +132,149 @@ box <-
 ggplotly(box)
 ```
  
+# Part 2
+
+## Select/create at least 2 categorical variables and select two continuous 
+## variables and perform an EDA.  Also, at least one of the categorical 
+## variables should be created from a continuous variable (using the cut() 
+## function).
+
+## Nationality, Wages, Position, Age, Overall
+
+## Players by Nationality
+## Overall by Nationality
+## Highest Wages by Position
+## Most valued Stat by position based on compensation of position
+```{r}
+# Create player score categories
+overall_factor <-
+  cut(fifa$Overall,
+      breaks = c(1, 70, 80, 90, 95, 100),
+      labels = c("D", "C", "B", "A", "S"))
+
+# Transfor Wage, select columns, and create categories for Position
+fifa_new <-
+  fifa %>%
+  select(Nationality, Wage, Position, Age, Overall) %>%
+  mutate(
+    Wage = as.numeric(str_remove_all(Wage, "[â‚¬K]")),
+    Overall_Fact = overall_factor,
+    Position2 = case_when(
+      Position == "ST" ~ "Offense",
+      Position == "RF" ~ "Offense",
+      Position == "LF" ~ "Offense",
+      Position == "CF" ~ "Offense",
+      Position == "RS" ~ "Offense",
+      Position == "LS" ~ "Offense",
+      Position == "RW" ~ "Offense",
+      Position == "LW" ~ "Offense",
+      Position == "RCM" ~ "Mid",
+      Position == "LCM" ~ "Mid",
+      Position == "RDM" ~ "Mid",
+      Position == "LDM" ~ "Mid",
+      Position == "CAM" ~ "Mid",
+      Position == "CDM" ~ "Mid",
+      Position == "LAM" ~ "Mid",
+      Position == "RAM" ~ "Mid",
+      Position == "LM" ~ "Mid",
+      Position == "RM" ~ "Mid",
+      Position == "CM" ~ "Mid",
+      Position == "RCB" ~ "Defense",
+      Position == "LCB" ~ "Defense",
+      Position == "LB" ~ "Defense",
+      Position == "RB" ~ "Defense",
+      Position == "CB" ~ "Defense",
+      Position == "RWB" ~ "Defense",
+      Position == "LWB" ~ "Defense",
+      Position == "GK" ~ "Golie",
+      TRUE ~ "Unmatched"
+    )
+  )
+
+# Ggpairs
+fifa_new %>%
+  select(Position2, Overall_Fact, Age, Wage) %>%
+  ggpairs()
+
+# Player count by Position
+d <- fifa_new %>%
+  ggplot(aes(x = Position2, fill = Position2)) +
+  geom_bar() +
+  xlab("Position") +
+  ylab("Count") +
+  ggtitle("Player Counts by Position")
+ggplotly(d)
+
+# Wages vs. Player Score
+fifa_new %>%
+  ggplot(aes(x = Overall_Fact, y = Wage)) +
+  geom_boxplot(aes(fill = Overall_Fact)) +
+  xlab("Player Grade") +
+  ylab("Wage") +
+  ggtitle("Wage vs. Player Score") +
+  theme_minimal()
+
+
+# Player Score vs. Age
+fifa_new %>%
+  ggplot(aes(x = Overall_Fact, y = Age)) +
+  geom_boxplot(aes(fill = Overall_Fact)) +
+  xlab("Player Grade") +
+  ylab("Age") +
+  ggtitle("Age vs. Player Score") +
+  theme_minimal()
+
+
+# Position vs. Age
+fifa_new %>%
+  ggplot(aes(x = Position2, y = Age)) +
+  geom_boxplot(aes(fill = Position2)) +
+  xlab("Position") +
+  ylab("Age") +
+  ggtitle("Age vs. Position") +
+  theme_minimal()
+
+
+# Wage vs. Age with Player Score color
+fifa_new %>%
+  ggplot(aes(x = Wage, y = Age, color = Overall_Fact)) +
+  geom_point() +
+  xlab("Wage") +
+  ylab("Age") +
+  ggtitle("Wage vs. Age") +
+  theme_minimal()
+
+# Top 10 Nations by Player Count
+fifa %>%
+  select(Nationality) %>%
+  group_by(Nationality) %>%
+  summarise(count = n()) %>%
+  top_n(10, count) %>%
+  arrange(desc(count)) %>%
+  ggplot(aes(x = reorder(
+    Nationality, count,
+    function(x) -x
+  ), y = count)) +
+  geom_bar(stat = "identity") +
+  xlab("Nationality") +
+  ylab("Count") +
+  ggtitle("Top 10 Nations by Count") +
+  theme_minimal()
+
+# Top 10 Nations by Mean Player Score
+fifa %>%
+  select(Overall, Nationality) %>%
+  group_by(Nationality) %>%
+  summarise(avg_overall = mean(Overall)) %>%
+  top_n(10, avg_overall) %>%
+  arrange(desc(avg_overall)) %>%
+  ggplot(aes(x = reorder(
+    Nationality, avg_overall,
+    function(x) -x
+  ), y = avg_overall)) +
+  geom_bar(stat = "identity") +
+  xlab("Nationality") +
+  ylab("Average Overall") +
+  ggtitle("Top 10 Nations by Overall") +
+  theme_minimal()
+```
