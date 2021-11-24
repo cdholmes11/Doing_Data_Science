@@ -1,0 +1,29 @@
+# Packages
+```{r}
+library(ggplot2) # Plots
+library(magrittr) # Pipe function
+library(dplyr)
+library(tidyverse) # Functions for tidying data
+library(GGally) # Helpful EDA plot function
+library(naniar)
+library(plotly) # Hover text in plots
+library(XML) # xml_Parse
+library(stringi)
+library(rvest) # html_table, html_node
+library(RCurl) # getURL
+library(stringr) # Remove sub-string from a string
+library(RJSONIO)
+library(jsonlite)
+
+# Downloading APIs
+library(openair)
+library(quantmod)
+library(treebase)
+library(twitteR)
+library(rtweet)
+library(WDI)
+library(rOpenSci)
+
+# Data sets
+library(nycflights13)
+```
