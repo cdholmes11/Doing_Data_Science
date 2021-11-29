@@ -8,12 +8,14 @@ library(GGally) # Helpful EDA plot function
 library(naniar)
 library(plotly) # Hover text in plots
 library(XML) # xml_Parse
-library(stringi)
 library(rvest) # html_table, html_node
 library(RCurl) # getURL
+library(stringi)
 library(stringr) # Remove sub-string from a string
 library(RJSONIO)
 library(jsonlite)
+library(naniar) # common NA removal functions
+
 
 # Downloading APIs
 library(openair)
@@ -26,4 +28,18 @@ library(rOpenSci)
 
 # Data sets
 library(nycflights13)
+```
+
+# Fcuntions
+```{r}
+parse_number() # pulls number from the string ($500)
+dim() # counts how many lines a data frame has
+names() # shows column headers of a data frame
+grep() # looks for a string in a dataset`
+writeLines()
+sort() # shows the data type for each column and the data type
+paste0() # concatenate vector after converting to character
+rbind_pages() # combine multple data frames into one
+Sys.sleep() # suspends execution for a specific interval in seconds
+tail() # show the last n rows
 ```
