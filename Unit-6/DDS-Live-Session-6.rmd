@@ -1,0 +1,104 @@
+
+# Live Session 6
+
+Packages
+```{r}
+library(jsonlite)
+library(ggplot2) # Plots
+library(magrittr) # Pipe function
+library(dplyr)
+library(tidyverse) # Functions for tidying data
+library(e1071)
+library(class)
+library(caret)
+```
+
+# Part 1
+```{r}
+# Import data
+t_train <- read.csv(file.choose(), header = TRUE)
+
+t_train_age_class <-
+    t_train %>%
+    select(Age, Pclass, Survived) %>%
+    filter(!is.na(Age) & !is.na(Pclass) & !is.na(Survived))
+
+# Classify those who survived and died based on Age and Class
+## Plot for visual review
+t_train_age_class %>%
+    ggplot(aes(x = Age, y = Pclass, color = Survived)) +
+    geom_point()
+
+## Standardize
+t_train_age_class$z_age <- scale(t_train_age_class$Age)
+t_train_age_class$z_pclass <- scale(t_train_age_class$Pclass)
+
+# Create train and test set
+t_train_len <- dim(t_train_age_class)[1]
+train_ind <- sample(seq(1, t_train_len, 1), .8 * t_train_len)
+
+train <- t_train_age_class[train_ind, ]
+test <- t_train_age_class[-train_ind, ]
+
+head(train)
+head(test)
+
+# Confusion Matrix of k = 3
+classification <-
+    knn(train[, 4:5], test[, 4:5], train$Survived, prob = TRUE, k = 3)
+confusionMatrix(as.factor(classification), as.factor(test$Survived))
+
+# Use your age and predict your survival based on each of the ticket classes
+df <- data.frame(Age = c(33, 33, 33), pClass = c(1, 2, 3))
+knn(train[, 1:2], df[, 1:2], train$Survived, prob = TRUE, k = 3)
+```
+
+# Part 2
+```{r}
+# 70-30 split
+# k = 1 - 90
+# sepal length and sepal width as predictors
+head(iris)
+
+# Data
+iris %>%
+    ggplot(aes(x = Sepal.Length, y = Sepal.Width, color = Species)) +
+    geom_point()
+
+iris_len <- dim(iris)[1]
+
+
+# Test for best k value
+iterations <- 500
+knum <- 90
+
+# Matrix bucket for iteration storage
+master_acc <- matrix(nrow = iterations, ncol = knum)
+
+# k value iteration test
+for (j in 1:iterations) {
+    iris_ind <- sample(seq(1, iris_len, 1), .7 * iris_len)
+    iris_train <- iris[iris_ind, ]
+    iris_test <- iris[-iris_ind, ]
+    for (i in 1:knum) {
+        classification <-
+            knn(iris_train[, 1:2], iris_test[, 1:2],
+                iris_train$Species, k = i, prob = TRUE)
+        cm <- confusionMatrix(table(classification, iris_test$Species))
+        master_acc[j, i] <- cm$overall[1]
+    }
+}
+
+# Convert to data frame and calculate mean
+mean_acc_df <- as.data.frame(colMeans(master_acc))
+colnames(mean_acc_df) <- c("master_acc")
+
+# Plot mean accuracy for each k value
+mean_acc_df %>% ggplot(aes(x = seq(1, knum, 1), y = master_acc)) +
+    geom_line() +
+    xlab("K Value") +
+    ylab("Mean Accuracy") +
+    ggtitle("Iris Mean K Value Accuracy") +
+    theme_minimal() +
+    scale_x_continuous(breaks = seq(0, knum, 5))
+```

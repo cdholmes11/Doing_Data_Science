@@ -1,0 +1,300 @@
+# Live Session 5
+
+# Packages
+```{r}
+library(dplyr)
+library(magrittr)
+library(ggplot2)
+library(mapproj)
+library(plotly)
+library(tidyr)
+library(stringr)
+library(scales)
+```
+# 5.5 Strings
+```{r}
+colors <-
+    c("orange",
+    "blue",
+    "yellow",
+    "green",
+    "purple",
+    "brown",
+    "red")
+
+color_expression <- str_c(colors, collapse = "\\b|\\b")
+color_expression <- str_c("\\b", color_expression, "\\b")
+color_expression
+
+has_color <- str_subset(sentences, color_expression)
+has_color
+
+matches <- str_extract(has_color, color_expression)
+matches
+
+matches_all <- str_extract_all(has_color, color_expression, simplify = TRUE)
+matches_all
+class(matches_all)
+
+matches_all <- unlist(str_extract_all(has_color, color_expression))
+matches_all
+
+match_df <- data.frame(Colors = matches_all)
+match_df %>% ggplot(aes(x = Colors, fill = Colors)) +
+    geom_bar()
+matchDF %>% ggplot(aes(x = Colors, fill = Colors)) +
+    geom_bar() +
+    scale_fill_manual(values = colors)
+colors[order(colors)]
+
+match_df %>% ggplot(aes(x = Colors, fill = Colors)) +
+    geom_bar() +
+    scale_fill_manual(values = colors[order(colors)])
+```
+
+# Part 1
+```{r}
+# Import Data
+bball_players <- read.csv("C:/Users/corey/OneDrive/Documents/School/Classes/Doing Data Science/MSDS_6306_Doing-Data-Science/Unit 2/PlayersBBall.csv", header = TRUE) # headers are included in data
+head(bball_players)
+
+# Transform height column into total(inches)
+bball_players_mod <-
+    bball_players %>%
+    filter(!is.na(bball_players$height)) %>%
+    separate(height, into = c("feet", "inches"), sep = "-") %>%
+    mutate(bball_players, total = as.numeric(feet) * 12 + as.numeric(inches))
+
+# Historgram of new total height column
+bball_players_mod %>%
+    ggplot(aes(x = total)) +
+    geom_histogram(fill = "#943636") +
+    xlab("Height(in)") +
+    ylab("Count") +
+    ggtitle("Basketball Player Height Distribution") +
+    theme_minimal()
+head(bball_players_mod)
+```
+
+# Part 2
+```{r}
+# Import Data
+fifa <- read.csv("C:/Users/corey/OneDrive/Documents/GitHub/MSDS_6306_Doing-Data-Science/Unit 3/FIFA Players.csv", header = TRUE)
+dim(fifa)
+sum(fifa$Height == "")
+
+# Transform Height and Weight columns to numeric
+fifa_new <-
+    fifa %>%
+    filter(fifa$Height != "") %>%
+    separate(Height, into = c("feet", "inches")) %>%
+    mutate(total_height = as.numeric(feet) * 12 + as.numeric(inches),
+        Weight = as.numeric(str_remove(Weight, "lbs")))
+
+# or
+fifa_new <-
+    fifa %>%
+    filter(fifa$Height != "") %>%
+    separate(Height, into = c("feet", "inches")) %>%
+    mutate(total_height = as.numeric(feet) * 12 + as.numeric(inches),
+        Weight = as.numeric(str_replace(Weight, "...$", "")))
+# or
+FIFA$Weight %>% str_match_all("[0-9]+") %>% unlist %>% as.numeric
+
+# Scatter plot of height vs. weight
+fifa_new %>%
+    ggplot(aes(x = total_height, y = Weight, color = Position)) +
+    geom_point() +
+    xlab("Height(in)") +
+    ylab("Weight") +
+    ggtitle("Fifa Players Height vs. Weight") +
+    theme_minimal()
+
+# Facet wrap scatter plot of height vs. weight
+fifa_new %>%
+    ggplot(aes(x = total_height, y = Weight, color = Position)) +
+    geom_point() +
+    facet_wrap(~Position) +
+    xlab("Height(in)") +
+    ylab("Weight") +
+    ggtitle("Fifa Players Height vs. Weight") +
+    theme_minimal()
+
+# Max Height by Position
+fifa_max_height <- fifa_new %>%
+    select(Position, total_height) %>%
+    group_by(Position) %>%
+    summarize(max_height = max(total_height)) %>%
+    reorder(Position, max_height)
+fifa_max_height <- fifa_max_height[order(-fifa_max_height$max_height),]
+
+fifa_new_group <-
+    fifa_new %>%
+    mutate(position_group = ifelse(Position == "GK" | Position == "ST",
+        Position, "Other"))
+
+# Box plot of GK and ST Height
+fifa_new_group %>%
+    ggplot(aes(x = position_group, y = total_height, fill = position_group)) +
+    geom_boxplot() +
+    xlab("Position") +
+    ylab("Height") +
+    ggtitle("Fifa Players Height") +
+    theme_minimal()
+
+# Box plot of GK and ST Weight
+fifa_new_group %>%
+    ggplot(aes(x = position_group, y = Weight, fill = position_group)) +
+    geom_boxplot() +
+    xlab("Position") +
+    ylab("Weight") +
+    ggtitle("Fifa Players Weight") +
+    theme_minimal()
+
+
+
+# Scatter plot of LB and LM
+fifa_new %>%
+    filter(Position == "LB" | Position == "LM") %>%
+    ggplot(aes(x = total_height, y = Weight, color = Position)) +
+    geom_point() +
+    facet_wrap(~Position) +
+    xlab("Height(in)") +
+    ylab("Weight") +
+    ggtitle("Fifa Players Height vs. Weight") +
+    theme_minimal()
+
+# Box plot of LB and LM Weight
+fifa_new %>%
+    filter(Position == "LB" | Position == "LM") %>%
+    ggplot(aes(x = Position, y = Weight, fill = Position)) +
+    geom_boxplot() +
+    xlab("Position") +
+    ylab("Weight") +
+    ggtitle("Fifa Players Weight") +
+    theme_minimal()
+
+# Box plot of LB and LM Height
+fifa_new %>%
+    filter(Position == "LB" | Position == "LM") %>%
+    ggplot(aes(x = Position, y = total_height, fill = Position)) +
+    geom_boxplot() +
+    xlab("Position") +
+    ylab("Height") +
+    ggtitle("Fifa Players Weight") +
+    theme_minimal()
+```
+
+# Part 3
+# Question 1
+## Import yob2016
+```{r}
+yob2016 <-
+    as.data.frame(read.delim("C:\\Users\\corey\\OneDrive\\Documents\\GitHub\\MSDS_6306_Doing-Data-Science\\Unit 5\\yob2016.txt", head = FALSE))
+head(yob2016)
+str(yob2016)
+
+## Tidy data
+yob2016_df <- yob2016 %>% separate(V1, into = c("name", "gender", "count"))
+yob2016_df$gender <- as.factor(yob2016_df$gender)
+
+## Find duplicate name
+grep("yyy", yob2016_df$name, ignore.case = TRUE)
+yob2016_df$name[212]
+dim(yob2016_df)
+grep("Fionayyy", yob2016_df$name, ignore.case = TRUE)
+
+## Remove duplicate name
+y2016 <- yob2016_df %>% filter(str_detect(name, "yyy$", negate = TRUE))
+dim(y2016)
+grep("Fionayyy", y2016$name, ignore.case = TRUE)
+
+## yob2016 summary
+summary(y2016)
+```
+
+# Question 2
+```{r}
+yob2015 <-
+    as.data.frame(read.delim("C:\\Users\\corey\\OneDrive\\Documents\\GitHub\\MSDS_6306_Doing-Data-Science\\Unit 5\\yob2015.txt", head = FALSE))
+head(yob2015)
+str(yob2015)
+
+## Tidy data
+y2015 <- yob2015 %>% separate(V1, into = c("name", "gender", "count"))
+y2015$gender <- as.factor(y2015$gender)
+head(y2015)
+
+## Show last 10 rows
+tail(y2015, n = 10)
+
+### They are all male. They all have a count of 5.
+
+## Merge yob2016 and yob2015
+final <- merge(y2015, y2016, by = c("name", "gender"))
+names(final)[names(final) == "count.x"] <- "count_2015"
+names(final)[names(final) == "count.y"] <- "count_2016"
+final <-
+    final %>%
+    mutate(final, total = as.numeric(final$count_2015) +
+        as.numeric(final$count_2016))
+
+final <- final[order(-final$total), ]
+
+## Top 10 names
+slice_max(final, final$total, n = 10)
+
+## Top 10 female names
+final_female <-
+    final %>%
+    filter(gender == "F", ignore.case = TRUE) %>%
+    slice_max(total, n = 10)
+final_female_names <- final_female %>% select(name)
+
+write.csv(final_female_names, "C:\\Users\\corey\\OneDrive\\Documents\\GitHub\\Doing_Data_Science\\Unit-5\\Top_10_Female_Names", row.names = FALSE) # nolint
+
+
+## Visualization
+### Pie chart of Gender
+final %>%
+    group_by(gender) %>%
+    summarize(total = sum(total)) %>%
+    ggplot(aes(x = "", y = total, fill = gender)) +
+    geom_bar(stat = "identity", width = 1) +
+    coord_polar("y", start = 0) +
+    theme_void() +
+    geom_text(aes(y = total/2 + c(0, cumsum(total)[-length(total)]),
+        label = percent(total/sum(total)))) +
+    ggtitle("Gender Percentages (2015-2016)")
+
+head(final)
+
+### Top 10 names shared by Males and Females
+final_wide <-
+    final %>%
+    select(name, gender, total) %>%
+    pivot_wider(names_from = gender, values_from = total)
+
+# Filter to top 95% for Male and Female
+final_wide_shared <-
+    final_wide %>%
+    mutate(total = F + M, delta = abs(F - M),
+        quant_check_f =
+            ifelse(F > unname(quantile(final_wide$F,
+                probs = .95, na.rm = TRUE)), "True", "False"),
+        quant_check_m =
+            ifelse(M > unname(quantile(final_wide$M,
+                probs = .95, na.rm = TRUE)), "True", "False")) %>%
+    filter(quant_check_f == "True" & quant_check_m == "True")
+
+# Top 10 gender neutral names over 95% quantile
+final_wide_shared %>%
+    slice_min(delta, n = 10) %>%
+    select(name, delta, total) %>%
+    ggplot(aes(x = reorder(name, delta), y = delta, fill = name)) +
+    geom_bar(stat = "identity") +
+    xlab("Names") +
+    ylab("M vs. F Delta") +
+    ggtitle("Top 10 Gender Neutral Names of 2015-2016 over 95% Quantile") +
+    theme_minimal()
+```

@@ -1,16 +1,16 @@
 # Questions
-```{r}
-## what is the 'function' portion of the function doing?
-## it appears to be redundant because you are defining a function immediately after it
-sapply(diamonds, function(x) sum(is.na(x)))
-
-df %>% filter(str_detect(quotes,"John Wooden")) # not finding quotes
-
-# Why is it in Brackets?
-importantWords = theText[!str_detect(theText,regex(wordsToTakeOut,ignore_case = TRUE))]
-```
 
 ## How did we calculate the regression line?
 ## ln 573 of Unit 3 Transformations.Rmd
 
-## What are factors?
+
+## 6.5.2 - is the calculation for False Positives/False negatives correct?
+
+```{r}
+iris_vers_virg <-
+    iris %>% filter(Species == "versicolor" | Species == "virginica")
+iris_vers_virg <- droplevels(iris_vers_virg)
+classification <- knn.cv(iris_vers_virg[, 1:2], iris_vers_virg$Species, k = 10)
+
+confusionMatrix(classification, iris_vers_virg$Species)
+```
