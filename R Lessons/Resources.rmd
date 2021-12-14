@@ -37,6 +37,8 @@ library(nycflights13)
 ```{r}
 parse_number() # pulls number from the string ($500)
 dim() # counts how many lines a data frame has
+summary()
+str()
 names() # shows column headers of a data frame
 grep() # looks for a string in a dataset`
 writeLines()
@@ -53,4 +55,6 @@ scale() # standardizes the scale of the axis. Used with knn.
 table() # creates a table from inputs
 confusionMatrix() # creates a confusion matrix from your table of data.
 colMeans() # finds the mean of each column
+naiveBayes()
+dnorm() # density distribution function given mean and sd
 ```

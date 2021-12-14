@@ -1,7 +1,7 @@
 
 # Live Session 6
 
-Packages
+# Packages
 ```{r}
 library(jsonlite)
 library(ggplot2) # Plots
@@ -31,7 +31,6 @@ t_train_age_class %>%
 
 ## Standardize
 t_train_age_class$z_age <- scale(t_train_age_class$Age)
-t_train_age_class$z_pclass <- scale(t_train_age_class$Pclass)
 
 # Create train and test set
 t_train_len <- dim(t_train_age_class)[1]
@@ -45,7 +44,7 @@ head(test)
 
 # Confusion Matrix of k = 3
 classification <-
-    knn(train[, 4:5], test[, 4:5], train$Survived, prob = TRUE, k = 3)
+    knn(train[, c(2, 4)], test[, c(2, 4)], train$Survived, prob = TRUE, k = 3)
 confusionMatrix(as.factor(classification), as.factor(test$Survived))
 
 # Use your age and predict your survival based on each of the ticket classes
@@ -92,6 +91,8 @@ for (j in 1:iterations) {
 # Convert to data frame and calculate mean
 mean_acc_df <- as.data.frame(colMeans(master_acc))
 colnames(mean_acc_df) <- c("master_acc")
+
+which.max(mean_acc_df$master_acc)
 
 # Plot mean accuracy for each k value
 mean_acc_df %>% ggplot(aes(x = seq(1, knum, 1), y = master_acc)) +

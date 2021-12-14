@@ -1,0 +1,284 @@
+# Live Session 7
+
+# Packages
+```{r}
+library(jsonlite)
+library(ggplot2) # Plots
+library(magrittr) # Pipe function
+library(dplyr)
+library(tidyverse) # Functions for tidying data
+library(e1071)
+library(class)
+library(caret)
+library(mvtnorm)
+library(tibble)
+```
+
+# Part 1
+```{r}
+# Import data
+t_train <- read.csv(file.choose(), header = TRUE)
+
+t_train_age_class <-
+    t_train %>%
+    select(Age, Pclass, Survived) %>%
+    filter(!is.na(Age) & !is.na(Pclass) & !is.na(Survived)) %>%
+    mutate(Pclass = as.factor(Pclass))
+
+# Test dataframe
+df <- data.frame(Age = c(30, 30, 30), Pclass = as.factor((c(1, 2, 3))))
+
+# Test entire data set with Naive Bays
+model <- naiveBayes(t_train_age_class[, c(1, 2)], t_train_age_class$Survived)
+predict(model, df, type = "raw")
+
+# Create train and test set
+
+## Seed 1
+set.seed(1)
+t_train_len <- dim(t_train_age_class)[1]
+train_ind <- sample(seq(1, t_train_len, 1), .7 * t_train_len)
+
+train <- t_train_age_class[train_ind, ]
+test <- t_train_age_class[-train_ind, ]
+
+# Classify those who survived and died based on Age and Class
+
+# Naive Bays
+nb_train_model <- naiveBayes(train[, c(1, 2)], train$Survived)
+confusionMatrix(table(predict(nb_train_model, test[, c(1, 2)]), test$Survived))
+
+# KNN
+# Confusion Matrix of k = 3
+classification <-
+    knn(train[, c(1, 2)], test[, c(1, 2)], train$Survived, prob = TRUE, k = 3)
+confusionMatrix(as.factor(classification), as.factor(test$Survived))
+
+## Seed 2
+set.seed(2)
+t_train_len <- dim(t_train_age_class)[1]
+train_ind <- sample(seq(1, t_train_len, 1), .7 * t_train_len)
+
+train <- t_train_age_class[train_ind, ]
+test <- t_train_age_class[-train_ind, ]
+
+# Classify those who survived and died based on Age and Class
+
+# Naive Bays
+nb_train_model <- naiveBayes(train[, c(1, 2)], train$Survived)
+confusionMatrix(table(predict(nb_train_model, test[, c(1, 2)]), test$Survived))
+
+# KNN
+# Confusion Matrix of k = 3
+classification <-
+    knn(train[, c(1, 2)], test[, c(1, 2)], train$Survived, prob = TRUE, k = 3)
+confusionMatrix(as.factor(classification), as.factor(test$Survived))
+
+## Seed 3
+set.seed(3)
+t_train_len <- dim(t_train_age_class)[1]
+train_ind <- sample(seq(1, t_train_len, 1), .7 * t_train_len)
+
+train <- t_train_age_class[train_ind, ]
+test <- t_train_age_class[-train_ind, ]
+
+# Classify those who survived and died based on Age and Class
+
+# Naive Bays
+nb_train_model <- naiveBayes(train[, c(1, 2)], train$Survived)
+confusionMatrix(table(predict(nb_train_model, test[, c(1, 2)]), test$Survived))
+
+# KNN
+# Confusion Matrix of k = 3
+classification <-
+    knn(train[, c(1, 2)], test[, c(1, 2)], train$Survived, prob = TRUE, k = 3)
+confusionMatrix(as.factor(classification), as.factor(test$Survived))
+
+## Seed 4
+set.seed(4)
+t_train_len <- dim(t_train_age_class)[1]
+train_ind <- sample(seq(1, t_train_len, 1), .7 * t_train_len)
+
+train <- t_train_age_class[train_ind, ]
+test <- t_train_age_class[-train_ind, ]
+
+# Classify those who survived and died based on Age and Class
+
+# Naive Bays
+nb_train_model <- naiveBayes(train[, c(1, 2)], train$Survived)
+confusionMatrix(table(predict(nb_train_model, test[, c(1, 2)]), test$Survived))
+
+# KNN
+# Confusion Matrix of k = 3
+classification <-
+    knn(train[, c(1, 2)], test[, c(1, 2)], train$Survived, prob = TRUE, k = 3)
+confusionMatrix(as.factor(classification), as.factor(test$Survived))
+
+# Create Loop
+iterations <- 100
+master_acc <- matrix(nrow = iterations, ncol = 6)
+
+for (i in 1:iterations) {
+    set.seed(i)
+    t_train_len <- dim(t_train_age_class)[1]
+    train_ind <- sample(seq(1, t_train_len, 1), .7 * t_train_len)
+
+    train <- t_train_age_class[train_ind, ]
+    test <- t_train_age_class[-train_ind, ]
+
+    # Naive Bays
+    nb_train_model <- naiveBayes(train[, c(1, 2)], train$Survived)
+    cm_bays <-
+        confusionMatrix(table(predict(nb_train_model, test[, c(1, 2)]),
+            test$Survived))
+
+    master_acc[i, 1] <- cm_bays$overall[1] # Accuracy
+    master_acc[i, 2] <- cm_bays$byClass[1] # Sensitivity
+    master_acc[i, 3] <- cm_bays$byClass[2] # Specificity
+
+    # KNN
+    # Confusion Matrix of k = 3
+    classification <-
+        knn(train[, c(1, 2)], test[, c(1, 2)],
+            train$Survived, prob = TRUE, k = 3)
+    cm_knn <-
+        confusionMatrix(as.factor(classification), as.factor(test$Survived))
+
+    #knn
+    master_acc[i, 4] <- cm_knn$overall[1] # Accuracy
+    master_acc[i, 5] <- cm_knn$byClass[1] # Sensitivity
+    master_acc[i, 6] <- cm_knn$byClass[2] # Specificity
+}
+as.data.frame(master_acc)
+colnames(master_acc) <-
+    c("Bays Accuracy", "Bays Sensitivity", "Bays Specificity",
+        "KNN Accuracy", "KNN Sensitivity", "KNN Specificity")
+colMeans(master_acc)
+
+
+# Create dataframe with age, class, sex, and survival
+t_train_age_class_sex <-
+    t_train %>%
+    select(Age, Pclass, Sex, Survived) %>%
+    filter(!is.na(Age) & !is.na(Pclass) & !is.na(Survived)) %>%
+    mutate(Pclass = as.factor(Pclass))
+
+# Create test/train dataframes
+set.seed(4)
+t_train_len <- dim(t_train_age_class_sex)[1]
+train_ind <- sample(seq(1, t_train_len, 1), .7 * t_train_len)
+
+train <- t_train_age_class_sex[train_ind, ]
+test <- t_train_age_class_sex[-train_ind, ]
+
+# Classify those who survived and died based on Age and Class
+
+# Naive Bays
+nb_train_model <- naiveBayes(train[, c(1:3)], train$Survived)
+confusionMatrix(table(predict(nb_train_model, test[, c(1:3)]), test$Survived))
+
+# Loop
+iterations <- 100
+master_acc <- matrix(nrow = iterations, ncol = 3)
+
+for (i in 1:iterations) {
+    set.seed(i)
+    t_train_len <- dim(t_train_age_class)[1]
+    train_ind <- sample(seq(1, t_train_len, 1), .7 * t_train_len)
+
+    train <- t_train_age_class_sex[train_ind, ]
+    test <- t_train_age_class_sex[-train_ind, ]
+
+    # Naive Bays
+    nb_train_model <- naiveBayes(train[, c(1:3)], train$Survived)
+    cm <- confusionMatrix(table(predict(nb_train_model, test[, c(1:3)]),
+        test$Survived))
+
+    master_acc[i, 1] <- cm$overall[1] # Accuracy
+    master_acc[i, 2] <- cm$byClass[1] # Sensitivity
+    master_acc[i, 3] <- cm$byClass[2] # Specificity
+}
+as.data.frame(master_acc)
+colnames(master_acc) <- c("Accuracy", "Sensitivity", "Specificity")
+colMeans(master_acc)
+```
+
+# Part 2
+```{r}
+iris %>%
+    ggplot(aes(x = Sepal.Length, y = Sepal.Width, color = Species)) +
+    geom_point()
+
+# Variables
+iris_len <- dim(iris)[1]
+iterations <- 100
+
+# Matrix bucket for iteration storage
+master_acc_iris <- matrix(nrow = iterations, ncol = 14)
+
+# k value iteration test
+for (i in 1:iterations) {
+    set.seed(i)
+    # Naive Bays
+    iris_ind_bays <- sample(seq(1, iris_len, 1), .7 * iris_len)
+
+    iris_train_bays <- iris[iris_ind_bays, ]
+    iris_test_bays <- iris[-iris_ind_bays, ]
+
+    nb_iris_model <-
+        naiveBayes(iris_train_bays[, c(1:2)], iris_train_bays$Species)
+    cm_bays <-
+        confusionMatrix(table(predict(nb_iris_model, iris_test_bays[, c(1:2)]),
+            iris_test_bays$Species))
+
+    master_acc_iris[i, 1] <- cm_bays$overall[1] # Accuracy
+    master_acc_iris[i, 2] <- cm_bays$byClass[1] # Sensitivity
+    master_acc_iris[i, 3] <- cm_bays$byClass[2] # Sensitivity
+    master_acc_iris[i, 4] <- cm_bays$byClass[3] # Sensitivity
+    master_acc_iris[i, 5] <- cm_bays$byClass[4] # Specificity
+    master_acc_iris[i, 6] <- cm_bays$byClass[5] # Specificity
+    master_acc_iris[i, 7] <- cm_bays$byClass[6] # Specificity
+
+    # knn 34
+    iris_ind_knn <- sample(seq(1, iris_len, 1), .7 * iris_len)
+
+    iris_train_knn <- iris[iris_ind_knn, ]
+    iris_test_knn <- iris[-iris_ind_knn, ]
+
+    classification <-
+        knn(iris_train_knn[, 1:2], iris_test_knn[, 1:2],
+            iris_train_knn$Species, k = 34, prob = TRUE)
+    cm_knn <- confusionMatrix(table(classification, iris_test_knn$Species))
+
+    master_acc_iris[i, 8] <- cm_knn$overall[1] # Accuracy
+    master_acc_iris[i, 9] <- cm_knn$byClass[1] # Sensitivity
+    master_acc_iris[i, 10] <- cm_knn$byClass[2] # Sensitivity
+    master_acc_iris[i, 11] <- cm_knn$byClass[3] # Sensitivity
+    master_acc_iris[i, 12] <- cm_knn$byClass[4] # Specificity
+    master_acc_iris[i, 13] <- cm_knn$byClass[5] # Specificity
+    master_acc_iris[i, 14] <- cm_knn$byClass[6] # Specificity
+}
+
+# Organizing Results
+as.data.frame(master_acc_iris)
+colnames(master_acc_iris) <-
+    c(
+        "Bays Accuracy", "Bays Sensitivity Setosa",
+        "Bays Sensitivity Versicolor", "Bays Sensitivity Virginica",
+        "Bays Specificity Setosa", "Bays Specificity Versicolor",
+        "Bays Specificity Virginica", "KNN Accuracy", "KNN Sensitivity Setosa",
+        "KNN Sensitivity Versicolor", "KNN Sensitivity Virginica",
+        "KNN Specificity Setosa", "KNN Specificity Versicolor",
+        "KNN Specificity Virginica"
+    )
+df4 <- data.frame(colMeans(master_acc_iris))
+df4 <- rownames_to_column(df4, "Names")
+
+df4_ordered <-
+    df4 %>%
+    separate(Names, into = c("1", "2", "3"), sep = " ")
+colnames(df4_ordered) <- c("Type", "Statistic", "Species", "Value")
+df4_wide <- spread(df4_ordered, key = Type, value = Value)
+df4_wide$delta <- df4_wide$Bays - df4_wide$KNN
+df4_wide
+```

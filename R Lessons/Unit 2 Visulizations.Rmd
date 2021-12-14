@@ -1,0 +1,78 @@
+---
+title: "Unit 2"
+author: "CDHolmes"
+date: "11/7/2021"
+output: html_document
+---
+### GOAL: Assess if there is evidence that the relationship between city and highway mpg is different based on the drive of the car (4 wheel, front, or rear)
+
+```{r}
+## Create a scatter plot with just the points.
+mpg %>% ggplot(aes(x = hwy, y = cty)) + geom_point()
+
+## Create a plot with just the smoothed line.
+mpg %>% ggplot(aes(x = hwy, y = cty)) + geom_smooth()
+
+## Create a plot that has a different line for each level of drive(drv).
+mpg %>% ggplot(aes(x = hwy, y = cty,linetype = drv)) + geom_smooth()
+
+## Create a plot that has the smoothed line and the points and desgnate the
+## type of drive by color... in both the line and the points.
+mpg %>% ggplot(aes(x = hwy, y = cty, color = drv)) + geom_smooth() + geom_point()
+  
+## Create a plot that has the points and the smoothed line but the color
+## designates the class of the car and the lines are differentiated by the 
+## drive variable.
+mpg %>% ggplot() + geom_point(mapping = aes(x = hwy, y = cty, color = class)) +
+geom_smooth(mapping = aes(x = hwy, y = cty, linetype = drv, color = drv))
+
+
+```
+
+### Juding from the Loess curves, there is not sufficient evidence to suggest the relationship between highway and city mpg is different based on the drive of the car.
+
+### Titles
+```{r}
+mpg %>% ggplot(aes(x = hwy, y = cty, color = drv)) + geom_smooth() + geom_point() + ggtitle("City v. Highway MPG") + xlab("Highway") + ylab("City")
+```
+
+## Facet 
+```{r}
+mpg %>% ggplot() + geom_point(mapping = aes(x = hwy, y = cty, color = class)) +
+geom_smooth(mapping = aes(x = hwy, y = cty, linetype = drv)) + facet_wrap(~class)
+
+mpg %>% ggplot() + geom_point(mapping = aes(x = hwy, y = cty, color = drv)) +
+geom_smooth(mapping = aes(x = hwy, y = cty, linetype = drv)) + facet_grid(drv~class)
+
+mpg %>% ggplot(aes(fill = drv)) + geom_histogram(mapping = aes(x = cty)) + facet_grid(drv~class)
+
+```
+
+### Bar Charts - Statistical Transformations/Derived Features
+```{r}
+mpg %>% ggplot(aes(x = class)) + geom_bar(stat = "count") # Default stat is 'count'
+
+mpg %>% ggplot(aes(x = class, y = class)) + geom_bar() # Produces an error because it's not supposed to have a 'y' defined
+
+mpg %>% ggplot(aes(x = class, y = cty)) + geom_bar(stat = "identity")
+```
+
+
+### Positions
+```{r}
+mpg %>% ggplot(aes(x = class, fill = drv)) + geom_bar(position = "stack") # Default position is 'stack'
+
+mpg %>% ggplot(aes(x = class, fill = drv)) + geom_bar()
+
+mpg %>% ggplot(aes(x = class, fill = drv)) + geom_bar(position = "dodge")
+
+mpg %>% ggplot(aes(x = class, fill = drv)) + geom_bar(position = "fill")
+```
+
+
+
+
+
+
+
+
