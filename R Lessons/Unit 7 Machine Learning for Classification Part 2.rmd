@@ -33,6 +33,20 @@ P(D|-) = P(-|D) P(D) / P(-)
     = .0001 /(.0001 + 0.7992)
     = .000125
 
+# Libraries
+```{r}
+library(e1071)
+library(tm) # text mining library provides the stopwords() function
+library(tidyr)
+library(plyr)
+library(jsonlite)
+library(dplyr)
+library(tidyverse)
+library(caret)
+library(magrittr) # Pipe function
+library(mvtnorm)
+```
+
 # Volleyball Example
 ```{r}
 vball <- read.csv(file.choose(), header = TRUE)
@@ -79,7 +93,7 @@ library(jsonlite)
 library(dplyr)
 library(tidyverse)
 library(caret)
-
+library(magrittr) # Pipe function
 
 NYTIMES_KEY = "FDHOzGhKDUs0ArXViMvSfjMyYe4tbJkm" # Your Key Here … get from NYT API website
 
