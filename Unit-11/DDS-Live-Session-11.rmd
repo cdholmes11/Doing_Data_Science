@@ -1,0 +1,67 @@
+# Live Session 11
+
+# Libraries
+```{r}
+library(fpp2)
+library(flexmix)
+```
+
+# Temperature Data
+```{r}
+data(maxtemp)
+class(maxtemp)
+summary(maxtemp)
+
+# Filtering to years after 1990
+aus_maxtemp <- window(maxtemp, start = 1990, end = 2015)
+
+# SES
+fit1 <- ses(aus_maxtemp, initial = "simple", alpha = .8, h = 6)
+
+## Plot of actual data
+plot(aus_maxtemp,
+    type = "o",
+    xlim = c(1990, 2021),
+    ylim = c(35, 60),
+    xlab = "Year",
+    ylab = "Max Annual Temp(C)",
+    main = "Melbourne Max Annual Temperauture"
+)
+
+## Plot of estimated values from model
+lines(fitted(fit1), col = "blue", type = "o")
+## Plot of forecasted values
+lines(fit1$mean, col = "blue", type = "o")
+
+
+## Accuracy Check
+accuracy(fit1, maxtemp)
+summary(fit1)
+fit1$model
+mean(fit1$residuals)
+
+# Holt Model
+fit1h <- holt(aus_maxtemp, alpha = .8, beta = .2, initial = "simple",
+    damped = TRUE, h = 6)
+fitted(fit1h)
+
+# Plot of actual data
+plot(aus_maxtemp,
+    type = "o",
+    xlim = c(1990, 2021),
+    ylim = c(35, 60),
+    xlab = "Year",
+    ylab = "Max Annual Temp(C)",
+    main = "Melbourne Max Annual Temperauture (Holt)"
+)
+
+## Plot of estimated values from model
+lines(fitted(fit1h), col = "blue", type = "o")
+
+## Plot of forecasted values
+lines(fit1h$mean, col = "blue", type = "o")
+
+
+summary(fit1h)
+mean(fit1h$residuals)
+```

@@ -1,0 +1,198 @@
+# Libraries
+```{r}
+library(tidyverse)
+library(reshape2)
+library(plotly)
+library(GGally)
+library(reshape2)
+```
+
+# Question 1
+```{r}
+# Import Data
+cars <- read.csv(choose.files())
+
+# 6 Step Hypothesis Test
+## Step 1 - Identify null and alternative hypothesis
+### Slope: Ho equals 0
+### Ha does not equal 0
+
+## Step 2 - Find the critical value
+alpha <- .05
+deg_free <- dim(cars)[1] - 2
+
+critval <- qt(alpha / 2, deg_free, lower.tail = FALSE)
+critval
+
+## Step 3 - Find the test statistic
+fit <- lm(MPG ~ Weight, data = cars)
+summary(fit)
+
+tstat_int <- fit$coefficients[1] / 0.7975
+tstat_int
+
+## Step 4 - Find the p-value
+pvalue_int <- (1 - pt(tstat_int, 392)) * 2
+
+## Step 5 - Reject or fail to reject Ho
+### Reject Ho
+
+## Step 6 - Conclusion
+### There is overwhelming evidence to suggest that the slope is not equal to 0.
+### (p-value: 2.2e-16). Our best guess is slope = -0.0077.
+
+## Confidence interval
+confint(fit)
+
+## For ever 1 lbs, mpg decreases by 0.0077.
+confint(fit)
+```
+
+# Question 2
+```{r}
+# Dataset
+cars <- cars %>% mutate(wt2 = Weight^2)
+
+cars %>%
+    ggplot(aes(x = Weight, y = MPG)) +
+    geom_point()
+
+# Loop Variables
+iterations = 100
+res_sq_matrix <- matrix(nrow = iterations, ncol = 8)
+
+for (i in 1:iterations) {
+# Test/Train Set
+set.seed(i)
+cars_ind <- sample(seq(1, dim(cars)[1]), 1)
+cars_train <- cars[-cars_ind, ]
+cars_test <- cars[cars_ind, ]
+
+# Model 1
+model_fit <- lm(MPG ~ Weight, data = cars_train)
+res_sq_matrix[i,2] <- confint(model_fit)[2]
+res_sq_matrix[i,3] <- confint(model_fit)[4]
+model_fit_pred <- predict(model_fit, newdata = cars_test)
+as.data.frame(model_fit_pred)
+
+mspe_m1 <- data.frame(Observed = cars_test$MPG, Predicted = model_fit_pred)
+res_sq_matrix[i,1] <- (mspe_m1$Observed - mspe_m1$Predicted)^2
+
+# Model 2
+model_fit_2 <- lm(MPG ~ Weight + wt2, data = cars_train)
+res_sq_matrix[i,5] <- confint(model_fit_2)[2]
+res_sq_matrix[i,6] <- confint(model_fit_2)[5]
+res_sq_matrix[i,7] <- confint(model_fit_2)[3]
+res_sq_matrix[i,8] <- confint(model_fit_2)[6]
+
+model_fit_pred_2 <- predict(model_fit_2, newdata = cars_test)
+as.data.frame(model_fit_pred_2)
+
+mspe_m2 <- data.frame(Observed = cars_test$MPG, Predicted = model_fit_pred_2)
+res_sq_matrix[i,4] <- (mspe_m2$Observed - mspe_m2$Predicted)^2
+}
+
+mean_res_sq <- as.data.frame(colMeans(res_sq_matrix))
+mean_res_sq$model_num <- c("Model 1 MSR", "M1 2.5%", "M1 97.5%","Model 2 MSR",
+    "M2 2.5% wt", "M2 97.5% wt", "M2 2.5% wt^2", "M2 97.5% wt^2")
+mean_res_sq <- mean_res_sq[, c(2,1)]
+colnames(mean_res_sq) <- c("Model Number", "Results")
+mean_res_sq
+
+# Model 1 Chart
+preds_1 <- predict(model_fit)
+cars_train %>%
+    ggplot(aes(x = Weight, y = MPG)) +
+    geom_point() +
+    geom_line(data = cars_train, aes(x = Weight, y = preds_1, col = "red")) +
+    ggtitle("MPG vs Weight Model 1") +
+    theme_minimal()
+
+# Model 2 Chart
+preds_2 <- predict(model_fit_2)
+cars_train %>%
+    ggplot(aes(x = Weight, y = MPG)) +
+    geom_point() +
+    geom_line(data = cars_train, aes(x = Weight, y = preds_2, col = "red")) +
+    ggtitle("MPG vs Weight Model 2") +
+    theme_minimal()
+
+confint(model_fit)
+confint(model_fit_2)
+confint(fit)
+
+# Predict mean MPG for car with lbs = 2000
+df <- data.frame(Weight = 2000, wt2 = 2000^2)
+predict(model_fit_2, newdata = df)
+```
+# Question 3
+```{r}
+# Datasets
+cars_hp <-
+    cars %>%
+    filter(!is.na(Horsepower))
+
+cars_hp_null <-
+    cars %>%
+    filter(is.na(Horsepower))
+
+cars_hp %>%
+    ggplot(aes(x = Weight, y = Horsepower)) +
+    geom_point()
+
+# Test Fit
+hp_fit <- lm(Horsepower ~ Weight, data = cars_hp)
+summary(hp_fit)
+
+# Predict HP based on fit
+cars_hp_null$Horsepower <- predict.lm(hp_fit, newdata = cars_hp_null)
+cars_hp_null
+
+# Join dataframes back together
+cars_update <- rbind(cars_hp, cars_hp_null)
+dim(cars_hp)
+dim(cars_hp_null)
+dim(cars_update)
+
+# Scatter Plot of Horsepower vs. MPG
+cars_update %>%
+    ggplot(aes(x = Horsepower, y = MPG)) +
+    geom_point() +
+    ggtitle("Horepower vs. MPG Scatter Plot") +
+    theme_minimal()
+
+# Add squared HP
+cars_update$hp2 <- cars_update$Horsepower^2
+
+# Model 1
+mpg_hp_fit <- lm(MPG ~ Horsepower, data = cars_update)
+summary(mpg_hp_fit)
+
+mpg_hp_pred <- predict(mpg_hp_fit)
+cars_update %>%
+    ggplot(aes(x = Horsepower, y = MPG)) +
+    geom_point() +
+    geom_line(data = cars_update, aes(x = Horsepower, y = mpg_hp_pred, col = "red")) +
+    ggtitle("MPG vs Horsepower Model 1") +
+    theme_minimal()
+
+# Model 2
+mpg_hp_fit_2 <- lm(MPG ~ Horsepower + hp2, data = cars_update)
+summary(mpg_hp_fit_2)
+
+mpg_hp_pred_2 <- predict(mpg_hp_fit_2)
+cars_update %>%
+    ggplot(aes(x = Horsepower, y = MPG)) +
+    geom_point() +
+    geom_line(data = cars_update, aes(x = Horsepower, y = mpg_hp_pred_2, col = "red")) +
+    ggtitle("MPG vs Horsepower Model 2") +
+    theme_minimal()
+
+df2 <- data.frame(Horsepower = 250)
+predict(mpg_hp_fit, newdata = df2)
+
+df3 <- data.frame(Horsepower = 250, hp2 = 250^2)
+predict(mpg_hp_fit_2, newdata = df3)
+
+confint(mpg_hp_fit_2)
+```
