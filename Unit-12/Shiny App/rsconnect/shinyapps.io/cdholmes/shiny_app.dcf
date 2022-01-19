@@ -1,0 +1,11 @@
+name: shiny_app
+title:
+username:
+account: cdholmes
+server: shinyapps.io
+hostUrl: https://api.shinyapps.io/v1
+appId: 5466129
+bundleId: 5487069
+url: https://cdholmes.shinyapps.io/shiny_app/
+when: 1642636029.51405
+lastSyncTime: 1642636029.51405
