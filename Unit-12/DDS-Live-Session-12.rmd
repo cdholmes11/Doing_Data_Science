@@ -13,6 +13,8 @@ library(shiny)
 library(magrittr)
 library(tidyverse)
 library(ggplot2)
+library(rsconnect)
+rsconnect::deployApp('C:/Users/corey/OneDrive/Documents/GitHub/Doing_Data_Science/Unit-12/Shiny App')
 
 # Data inport
 beers_raw <- read.csv("C:/Users/corey/OneDrive/Documents/GitHub/DDS-Project-1/Beers.csv", header = TRUE, encoding = "UTF-8")
@@ -28,6 +30,7 @@ brew_beers <-
 
 states <- brew_beers %>% select(State) %>% distinct()
 states <- states[order(states$State), ]
+states <- cbind(states, c("All"))
 
 ui <- fluidPage(
     # Title
